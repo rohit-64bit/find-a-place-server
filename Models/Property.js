@@ -34,22 +34,17 @@ const PropertySchema = new Schema({
         type: Number
     },
     type: {
-        type: String
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'propertyType',
+        require: true
     },
-    typeName: {
-        type: String,
-        required: true
-    },
-    // type: {
-    //     type: mongoose.Schema.Types.ObjectId,
-    //     ref: 'propertyType'
-    // },
     contact: {
         type: String,
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'user',
+        require: true
     }
 
 })

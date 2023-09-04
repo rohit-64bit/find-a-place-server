@@ -3,11 +3,11 @@ const { Schema } = mongoose
 
 const PropertyTypeSchema = new Schema({
 
-    typeName: {
+    type: {
         type: String,
         required: true
     },
-    typeDescription: {
+    description: {
         type: String,
         required: true
     }

@@ -10,9 +10,11 @@ router.post('/create-property', fetchUser, async (req, res) => {
 
         const sessionUserID = req.user.id
 
-        const { title, description, location, cost, images, type, contact, typeName } = req.body;
+        console.log(req.body)
 
-        const data = Property({
+        const { title, description, location, cost, images, type, contact } = req.body;
+
+        const data = await Property({
             title,
             description,
             location,
@@ -20,8 +22,7 @@ router.post('/create-property', fetchUser, async (req, res) => {
             images,
             type,
             contact,
-            owner: sessionUserID,
-            typeName
+            owner: sessionUserID
         })
 
         await data.save()
@@ -29,6 +30,7 @@ router.post('/create-property', fetchUser, async (req, res) => {
         res.status(200).json({ success: true, message: 'Property Added' })
 
     } catch (error) {
+
         const errorData = {
             path: `${req.baseUrl + req.url}`,
             errorMessage: error.message,
@@ -38,7 +40,9 @@ router.post('/create-property', fetchUser, async (req, res) => {
         errorLooger(errorData)
 
         console.log(error)
+
         res.status(500).json({ error: "Internal Server Error" })
+
     }
 
 })
@@ -73,7 +77,7 @@ router.get('/fetch-property', async (req, res) => {
 
     try {
 
-        const data = await Property.find({ RatingScore: { $gt: 3 } }).sort({ _id: -1 })
+        const data = await Property.find().sort({ _id: -1 })
 
         res.status(200).json({
             success: true,
@@ -182,6 +186,61 @@ router.post('/delete-property', fetchUser, async (req, res) => {
 
         console.log(error)
         res.status(500).json({ error: "Internal Server Error" })
+    }
+
+})
+
+router.post('/fetch-my-property', fetchUser, async (req, res) => {
+
+    try {
+
+        const sessionUserID = req.user.id;
+
+        const data = await Property.find({ owner: sessionUserID }).sort({ _id: -1 })
+
+        res.status(200).json({
+            success: true
+            , data
+        })
+
+    } catch (error) {
+
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
+
+        errorLooger(errorData)
+
+        console.log(error)
+        res.status(500).json({ error: "Internal Server Error" })
+
+    }
+
+})
+
+router.get('/fetch-property-details/:propertyID', async (req, res) => {
+
+    try {
+
+        const { propertyID } = req.params;
+        const data = await Property.findOne({ _id: propertyID })
+        res.status(200).json({ success: true, data })
+
+    } catch (error) {
+
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
+
+        errorLooger(errorData)
+
+        console.log(error)
+        res.status(500).json({ error: "Internal Server Error" })
+
     }
 
 })

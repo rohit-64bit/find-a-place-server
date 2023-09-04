@@ -2,7 +2,8 @@ const express = require('express');
 const Property = require('../Models/Property');
 const Booking = require('../Models/Booking');
 const router = express.Router()
-const fetchUser = require('../Middleware/fetchUser')
+const fetchUser = require('../Middleware/fetchUser');
+const errorLooger = require('../controllers/errorLogger');
 
 router.post('/check-availability', async (req, res) => {
 
@@ -10,28 +11,38 @@ router.post('/check-availability', async (req, res) => {
 
         const { propertyID, startDate, endDate } = req.body;
 
-        const validateProperty = await Booking.find({
+        const validateBooking = await Booking.findOne({
             propertyID: propertyID,
             startDate: { $lt: endDate },
             endDate: { $gt: startDate }
         })
 
-        if (validateProperty) {
+        if (!validateBooking) {
+            res.status(200).json({
+                success: true,
+                available: true,
+                message: "Available"
+            })
+        } else {
             return res.status(200).json({
                 success: true,
                 available: false,
-                message: "Unavailable"
+                message: "Property unavailable"
             })
         }
 
-        res.status(200).json({
-            success: true,
-            available: true,
-            message: "Available"
-        })
 
     } catch (error) {
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
 
+        errorLooger(errorData)
+
+        console.log(error)
+        res.status(500).json({ error: "Internal Sever Error" })
     }
 
 })
@@ -42,35 +53,53 @@ router.post('/create-booking', fetchUser, async (req, res) => {
 
         const { propertyID, startDate, endDate, userID } = req.body;
 
-        const validateProperty = await Booking.find({
+        const sessionUserID = req.user.id
+
+        const validateBooking = await Booking.findOne({
             propertyID: propertyID,
             startDate: { $lt: endDate },
             endDate: { $gt: startDate }
         })
 
-        if (validateProperty) {
+        if (!validateBooking) {
+
+            const data = await Booking({
+                propertyID,
+                userID: sessionUserID,
+                startDate,
+                endDate
+            })
+
+            await data.save()
+
+            res.status(200).json({
+                success: true,
+                available: true,
+                message: "Booking Created"
+            })
+
+        } else {
+
             return res.status(200).json({
                 success: true,
                 available: false,
-                message: "Unavailable"
+                message: "Property unavailable"
             })
+
         }
 
-        const data = await Booking({
-            propertyID,
-            userID,
-            startDate,
-            endDate
-        })
-
-        await data.save()
-
-        res.status(200).json({
-            success: true,
-            message: "Booking Created"
-        })
-
     } catch (error) {
+
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
+
+        errorLooger(errorData)
+
+        console.log(error)
+        res.status(500).json({ error: "Internal Sever Error" })
 
     }
 
@@ -89,13 +118,23 @@ router.post('/cancel-booking', fetchUser, async (req, res) => {
         }
 
         validateBooking.isCanceled = true
+        validateBooking.status = "cancelled"
 
         await validateBooking.save()
 
         res.status(200).json({ success: true, message: "Booking Canceled" })
 
     } catch (error) {
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
 
+        errorLooger(errorData)
+
+        console.log(error)
+        res.status(500).json({ error: "Internal Sever Error" })
     }
 
 })
@@ -111,7 +150,50 @@ router.post('/fetch', fetchUser, async (req, res) => {
         res.status(200).json({ success: true, data })
 
     } catch (error) {
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
 
+        errorLooger(errorData)
+
+        console.log(error)
+        res.status(500).json({ error: "Internal Sever Error" })
+    }
+
+})
+
+router.post('/update', fetchUser, async (req, res) => {
+
+    try {
+
+        const validateBooking = await Booking.findById(req.body.bookingID)
+
+        if (!validateBooking) {
+            return res.status(200).json({ error: "Invalid Booking" })
+        }
+
+        validateBooking.status = req.body.status
+
+        await validateBooking.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Status Updated"
+        })
+
+    } catch (error) {
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
+
+        errorLooger(errorData)
+
+        console.log(error)
+        res.status(500).json({ error: "Internal Sever Error" })
     }
 
 })

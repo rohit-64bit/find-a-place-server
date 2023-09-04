@@ -81,7 +81,8 @@ router.post('/create-user', [
         await newOtp.save()
 
         success = true;
-        res.json({ success, message: "Verify Email" })
+
+        res.json({ success, message: "Account Created" })
 
     } catch (error) {
         console.log(error.message)
@@ -277,7 +278,7 @@ router.post('/update-password', fetchUser, async (req, res) => {
         const verifyOldPassword = await bcrypt.compare(password, user.password)
 
         if (!verifyOldPassword) {
-            return res.status(400).json({ error: "Invalid Credentials" })
+            return res.status(400).json({ error: "Invalid Current Password" })
         }
 
         const salt = await bcrypt.genSalt(10)
