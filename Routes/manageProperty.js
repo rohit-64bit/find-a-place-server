@@ -22,7 +22,8 @@ router.post('/create-property', fetchUser, async (req, res) => {
             images,
             type,
             contact,
-            owner: sessionUserID
+            owner: sessionUserID,
+            RatingScore: 0.0
         })
 
         await data.save()
@@ -53,10 +54,23 @@ router.get('/fetch-top-property', async (req, res) => {
 
         const data = await Property.find({ RatingScore: { $gt: 4 } }).sort({ _id: -1 })
 
-        res.status(200).json({
-            success: true,
-            data
-        })
+        if (data.length > 0) {
+            return res.status(200).json({
+                success: true,
+                data
+            })
+        } else {
+
+            const data = await Property.find().sort({ _id: -1 })
+
+            return res.status(200).json({
+                success: true,
+                data:data.slice(0,4)
+            })
+
+        }
+
+
 
     } catch (error) {
         const errorData = {

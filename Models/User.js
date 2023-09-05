@@ -27,6 +27,10 @@ const UserSchema = new Schema({
     isAuth: {
         type: Boolean,
         default: false
+    },
+    joinedOn:{
+        type: Date,
+        default: Date.now
     }
     
 })

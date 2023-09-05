@@ -4,7 +4,7 @@ const { body, validationResult } = require('express-validator');
 const Admin = require("../models/Admin")
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const fetchAdmin = require('../middleware/fetchAdmin')
+const fetchAdmin = require('../Middleware/fetchAdmin')
 
 
 require('dotenv').config()

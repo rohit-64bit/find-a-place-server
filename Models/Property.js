@@ -27,11 +27,13 @@ const PropertySchema = new Schema({
     lastBookingTime: {
         type: String
     },
+    // this can be controlled by the property owner
     isAvailable: {
         type: Boolean
     },
     RatingScore: {
-        type: Number
+        type: Number,
+        default: 0.0
     },
     type: {
         type: mongoose.Schema.Types.ObjectId,
@@ -40,6 +42,7 @@ const PropertySchema = new Schema({
     },
     contact: {
         type: String,
+        require: true
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,

@@ -378,4 +378,34 @@ router.post('/get-profile', fetchUser, async (req, res) => {
 
 })
 
+router.get('/user-profile/:userID', async (req, res) => {
+
+    try {
+
+        const data = await User.findOne({ userID: req.params.userID })
+
+        if (!data) {
+            return res.status(404).json({ error: "User Not Found" })
+        }
+
+        res.status(200).json({ success: true, user: data })
+
+    } catch (error) {
+
+        console.log(error.message);
+
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
+
+        errorLooger(errorData)
+
+        res.status(500).json({ error: "Internal Server Error" })
+
+    }
+
+})
+
 module.exports = router

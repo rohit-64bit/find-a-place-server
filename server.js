@@ -12,9 +12,6 @@ connectToMongo()
 
 const PORT = 8888 || process.env.PORT
 
-// app.use(expressStatic('/Uploads'))
-app.use(express.static('Uploads'))
-
 app.use(express.json())
 
 app.use(cors())
