@@ -17,7 +17,12 @@ const ReviewSchema = new Schema({
         ref: 'property',
         require: true
     },
-    rating:{
+    bookingID: {
+        type: Schema.Types.ObjectId,
+        ref: 'booking',
+        require: true
+    },
+    rating: {
         type: Number,
         require: true
     },
@@ -26,6 +31,13 @@ const ReviewSchema = new Schema({
         require: true
     },
     description: {
+        type: String
+    },
+    reply: {
+        type: true,
+        default: false
+    },
+    replyText:{
         type: String
     }
 

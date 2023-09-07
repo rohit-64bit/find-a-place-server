@@ -1,7 +1,7 @@
 const express = require('express');
+const router = express.Router()
 const Property = require('../Models/Property');
 const Booking = require('../Models/Booking');
-const router = express.Router()
 const fetchUser = require('../Middleware/fetchUser');
 const errorLooger = require('../controllers/errorLogger');
 
@@ -160,6 +160,46 @@ router.post('/fetch', fetchUser, async (req, res) => {
 
         console.log(error)
         res.status(500).json({ error: "Internal Sever Error" })
+    }
+
+})
+
+// exclusive apis for property owners
+
+router.post('/fetch-bookings', fetchUser, async (req, res) => {
+
+    try {
+
+        const sessionUserID = req.user.id
+
+        const property = await Property.find({ owner: sessionUserID })
+
+        const propertyID = property.map(data => data._id)
+
+        const data = await Booking.find({ propertyID: { $in: propertyID } }).sort({ _id: -1 })
+
+        const newData = await Booking.find({ status: 'new' }).sort({ _id: -1 })
+
+        res.status(200).json({
+
+            success: true,
+            data: data,
+            newData: newData.length
+            
+        })
+
+    } catch (error) {
+
+        console.log(error)
+
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
+        errorLooger(errorData)
+        res.status(500).json({ error: "Internal Sever Error" })
+
     }
 
 })
