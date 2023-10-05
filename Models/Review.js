@@ -34,13 +34,13 @@ const ReviewSchema = new Schema({
         type: String
     },
     reply: {
-        type: true,
+        type: Boolean,
         default: false
     },
-    replyText:{
+    replyText: {
         type: String
     }
 
 })
 
-module.exports = mongoose.model('admin', ReviewSchema)
+module.exports = mongoose.model('review', ReviewSchema)

@@ -5,6 +5,12 @@ const Otp = require('../Models/Otp')
 const bcrypt = require('bcryptjs')
 const otpGenerator = require('otp-generator');
 const errorLooger = require('../controllers/errorLogger')
+const nodemailer = require('nodemailer');
+const client = require('../controllers/mailClient');
+
+require('dotenv').config()
+
+const env = process.env;
 
 router.post('/generate-otp', async (req, res) => {
 
@@ -42,6 +48,65 @@ router.post('/generate-otp', async (req, res) => {
 
         await newOtp.save()
 
+        client.sendMail(
+            {
+                from: env.MAIL,
+                to: email,
+                subject: `Hey ${validateUser.name} reset your password!`,
+                html: `<html>
+            
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  font-size: 16px;
+                  color: #333;
+                  background-color: #f7f7f7;
+                  padding: 20px;
+                  margin: 0;
+                  width: 100%;
+                }
+              </style>
+            </head>
+            
+            <body>
+              <table style="width: 100%; max-width: 600px; margin: 0 auto;">
+                <tr>
+                  <td
+                    style="background-color: #000000; color: #ffffff; font-size: 2rem; font-weight: bold; padding: 2rem; text-align: center;">
+                    hey! ${validateUser.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 2rem;">
+                    <p style="font-size: 1rem;">Reset your account password by using this OTP if you think that this is note done by
+                      you than you should secure your account.</p>
+                    <div style="margin-top: 2rem;">
+                      <div style="font-size: 0.8rem;">To reset your password please use this OTP</div>
+                      <div style="font-size: 3rem; font-weight: bold; text-align: center;">${otp}</div>
+                    </div>
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 2rem;">
+                      <p>Thanks &amp; Regards</p>
+                      <p><a href=${env.CLIENT_URL}
+                          style="font-weight: bold; color: #000000; text-decoration: none; border-bottom: 1px solid #6b7280; display: inline-block;">${env.CLIENT_URL}</a>
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background-color: #d1d5db; padding: 1rem; text-align: center;">
+                    <a href=${env.CLIENT_URL}
+                      style="font-weight: bold; opacity: 0.8; transition: opacity 0.3s ease-in-out; color: #000000; text-decoration: none; border-bottom: 2px solid #6b7280;">${env.CLIENT_URL}</a>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            
+            </html>`
+            }
+        )
+
         res.status(200).json({ success: true, message: "OTP Sent to mail" })
 
     } catch (error) {
@@ -54,7 +119,7 @@ router.post('/generate-otp', async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Server Error" })
     }
 
@@ -104,7 +169,7 @@ router.post('/validate-otp', async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Server Error" })
     }
 
@@ -133,6 +198,60 @@ router.post('/update-password', async (req, res) => {
 
         await User.findByIdAndUpdate(validateUser._id, { password: secPass }, { new: true })
 
+        client.sendMail(
+            {
+                from: env.MAIL,
+                to: email,
+                subject: `Hey ${validateUser.name} reset your password!`,
+                html: `<html>
+            
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  font-size: 16px;
+                  color: #333;
+                  background-color: #f7f7f7;
+                  padding: 20px;
+                  margin: 0;
+                  width: 100%;
+                }
+              </style>
+            </head>
+            
+            <body>
+              <table style="width: 100%; max-width: 600px; margin: 0 auto;">
+                <tr>
+                  <td
+                    style="background-color: #000000; color: #ffffff; font-size: 2rem; font-weight: bold; padding: 2rem; text-align: center;">
+                    hey! ${validateUser.name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 2rem;">
+                    <p style="font-size: 1rem;">Password is succesfully changed for your account ✨.</p>
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 2rem;">
+                      <p>Thanks &amp; Regards</p>
+                      <p><a href=${env.CLIENT_URL}
+                          style="font-weight: bold; color: #000000; text-decoration: none; border-bottom: 1px solid #6b7280; display: inline-block;">${env.CLIENT_URL}</a>
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background-color: #d1d5db; padding: 1rem; text-align: center;">
+                    <a href=${env.CLIENT_URL}
+                      style="font-weight: bold; opacity: 0.8; transition: opacity 0.3s ease-in-out; color: #000000; text-decoration: none; border-bottom: 2px solid #6b7280;">${env.CLIENT_URL}</a>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            
+            </html>`
+            }
+        )
+
         res.status(200).json({
             success: true,
             message: "Password Updated Login"
@@ -148,7 +267,7 @@ router.post('/update-password', async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Sever Error" })
     }
 

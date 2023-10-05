@@ -33,7 +33,11 @@ const PropertySchema = new Schema({
     },
     RatingScore: {
         type: Number,
-        default: 0.0
+        default: 0
+    },
+    totalReviews: {
+        type: Number,
+        default: 0
     },
     type: {
         type: mongoose.Schema.Types.ObjectId,

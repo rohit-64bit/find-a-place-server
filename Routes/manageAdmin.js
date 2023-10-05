@@ -10,8 +10,8 @@ const fetchAdmin = require('../Middleware/fetchAdmin')
 require('dotenv').config()
 const env = process.env;
 
-jwtSecret = env.JWT_SECRET_ADMIN;
-adminControllPassword = adminControllPassword.JWT_SECRET_ADMIN
+const jwtSecret = env.JWT_SECRET_ADMIN;
+const adminControllPassword = adminControllPassword.ADMIN_CONTROLL_PASSWORD
 
 
 // ROUTE 1: create a Admin using : POST '/api/auth/Admin/createAdmin' Doesn't require auth
@@ -29,7 +29,7 @@ router.post('/create', [
         return res.status(400).json({ error: `${errors.array()}` });
     }
 
-    if (req.password !== req.authPassword) {
+    if (req.body.password !== adminControllPassword) {
         return res.status(400).json({ error: 'You are not authorized.' });
     }
 
@@ -58,8 +58,11 @@ router.post('/create', [
         res.json({ success: true, message: "Admin Created" })
 
     } catch (errors) {
+
         console.error(errors.message);
+
         res.status(500).send("Internal Server Error");
+        
     }
 })
 

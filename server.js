@@ -35,6 +35,8 @@ app.use('/api/booking', require('./Routes/manageBooking'))
 
 app.use('/api/review', require('./Routes/manageReview'))
 
+app.use('/api/mail', require('./Routes/manageMail'))
+
 app.listen(PORT, () => {
     console.log(`Server Running at ${PORT}`)
 })

@@ -18,7 +18,7 @@ router.post('/create', fetchAdmin, async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -55,7 +55,7 @@ router.post('/update/:id', fetchAdmin, async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -86,7 +86,7 @@ router.get('/fetch-data/:id', async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -117,7 +117,7 @@ router.delete('/delete/:id', fetchAdmin, async (req, res) => {
         res.status(200).json({ success: true, message: "Deleted Successfully" })
 
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -142,7 +142,7 @@ router.get('/fetch', async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,

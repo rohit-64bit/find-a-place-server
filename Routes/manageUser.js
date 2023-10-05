@@ -80,12 +80,78 @@ router.post('/create-user', [
 
         await newOtp.save()
 
+        const client = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: env.MAIL,
+                pass: env.MAIL_SECRET
+            }
+        });
+
+        client.sendMail(
+            {
+                from: env.MAIL,
+                to: email,
+                subject: `Hey ${name} Welcome 👋`,
+                html: `
+                <html>
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  font-size: 16px;
+                  color: #333;
+                  background-color: #f7f7f7;
+                  padding: 20px;
+                  margin: 0;
+                  width: 100%;
+                }
+              </style>
+            </head>
+            
+            <body>
+              <table style="width: 100%; max-width: 600px; margin: 0 auto;">
+                <tr>
+                  <td
+                    style="background-color: #000000; color: #ffffff; font-size: 2rem; font-weight: bold; padding: 2rem; text-align: center;">
+                    Hey! ${name} welcome 👋</td>
+                </tr>
+                <tr>
+                  <td style="padding: 2rem;">
+                    <p style="font-size: 1rem;">Thankyou for joining our platform.</p>
+                    <div style="margin-top: 2rem;">
+                      <div style="font-size: 0.8rem;">Please use this OTP to verify your email.</div>
+                      <div style="font-size: 3rem; font-weight: bold; text-align: center;">${otp}</div>
+                    </div>
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 2rem;">
+                      <p>Thanks &amp; Regards</p>
+                      <p><a href=${env.CLIENT_URL}
+                          style="font-weight: bold; color: #000000; text-decoration: none; border-bottom: 1px solid #6b7280; display: inline-block;">${env.CLIENT_URL}</a>
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background-color: #d1d5db; padding: 1rem; text-align: center;">
+                    <a href=${env.CLIENT_URL}
+                      style="font-weight: bold; opacity: 0.8; transition: opacity 0.3s ease-in-out; color: #000000; text-decoration: none; border-bottom: 2px solid #6b7280;">${env.CLIENT_URL}</a>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            
+            </html>`
+            }
+        )
+
         success = true;
 
         res.json({ success, message: "Account Created" })
 
     } catch (error) {
-        console.log(error.message)
+        console.error(error.message)
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -116,15 +182,12 @@ router.post('/auth-user', [
 
         const validateUser = await User.findOne({ email: email })
 
-        if (!validateUser) {
-            return res.status(400).json({ error: "User not found" })
-        }
-
         let success = false
 
         if (!validateUser) {
             return res.status(400).json({ error: "Please try to login with correct credentials" })
         }
+
         const passCompare = await bcrypt.compare(password, validateUser.password);
 
         if (!passCompare) {
@@ -136,6 +199,7 @@ router.post('/auth-user', [
                 id: validateUser.id
             }
         }
+
         const authToken = jwt.sign(data, jwtSecret)
 
         success = true;
@@ -170,6 +234,72 @@ router.post('/auth-user', [
 
             await newOtp.save()
 
+            const client = nodemailer.createTransport({
+                service: "Gmail",
+                auth: {
+                    user: env.MAIL,
+                    pass: env.MAIL_SECRET
+                }
+            });
+
+            client.sendMail(
+                {
+                    from: env.MAIL,
+                    to: email,
+                    subject: `Hey ${validateUser.name} Welcome 👋`,
+                    html: `<html>
+                
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <style>
+                    body {
+                      font-family: Arial, sans-serif;
+                      font-size: 16px;
+                      color: #333;
+                      background-color: #f7f7f7;
+                      padding: 20px;
+                      margin: 0;
+                      width: 100%;
+                    }
+                  </style>
+                </head>
+                
+                <body>
+                  <table style="width: 100%; max-width: 600px; margin: 0 auto;">
+                    <tr>
+                      <td
+                        style="background-color: #000000; color: #ffffff; font-size: 2rem; font-weight: bold; padding: 2rem; text-align: center;">
+                        Hey! ${validateUser.name} welcome 👋</td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 2rem;">
+                        <p style="font-size: 1rem;">Thankyou for joining our platform.</p>
+                        <div style="margin-top: 2rem;">
+                          <div style="font-size: 0.8rem;">Please use this OTP to verify your email</div>
+                          <div style="font-size: 3rem; font-weight: bold; text-align: center;">${otp}</div>
+                        </div>
+                        <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 2rem;">
+                          <p>Thanks &amp; Regards</p>
+                          <p><a href=${env.CLIENT_URL}
+                              style="font-weight: bold; color: #000000; text-decoration: none; border-bottom: 1px solid #6b7280; display: inline-block;">${env.CLIENT_URL}</a>
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="background-color: #d1d5db; padding: 1rem; text-align: center;">
+                        <a href=${env.CLIENT_URL}
+                          style="font-weight: bold; opacity: 0.8; transition: opacity 0.3s ease-in-out; color: #000000; text-decoration: none; border-bottom: 2px solid #6b7280;">${env.CLIENT_URL}</a>
+                      </td>
+                    </tr>
+                  </table>
+                </body>
+                
+                </html>`
+                }
+            )
+
             res.status(200).json({
                 success,
                 message: "Please verify your email.",
@@ -182,7 +312,7 @@ router.post('/auth-user', [
 
     } catch (error) {
 
-        console.log(error)
+        console.error(error.message)
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -246,7 +376,7 @@ router.post('/auth-user/verify-email', async (req, res) => {
         res.status(400).json({ error: "Otp validation failed" })
 
     } catch (error) {
-        console.log(error)
+        console.error(error.message)
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -288,10 +418,72 @@ router.post('/update-password', fetchUser, async (req, res) => {
 
         await user.save()
 
+        const client = nodemailer.createTransport({
+            service: "Gmail",
+            auth: {
+                user: env.MAIL,
+                pass: env.MAIL_SECRET
+            }
+        });
+
+        client.sendMail(
+            {
+                from: env.MAIL,
+                to: user.email,
+                subject: `Hey ${user.name} verify your Email`,
+                html: `<html>
+            
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  font-family: Arial, sans-serif;
+                  font-size: 16px;
+                  color: #333;
+                  background-color: #f7f7f7;
+                  padding: 20px;
+                  margin: 0;
+                  width: 100%;
+                }
+              </style>
+            </head>
+            
+            <body>
+              <table style="width: 100%; max-width: 600px; margin: 0 auto;">
+                <tr>
+                  <td
+                    style="background-color: #000000; color: #ffffff; font-size: 2rem; font-weight: bold; padding: 2rem; text-align: center;">
+                    hey! ${user.name} </td>
+                </tr>
+                <tr>
+                  <td style="padding: 2rem;">
+                    <p style="font-size: 1rem;">Your password is updated succesfully now you can use your new password to login.</p>
+                    <div style="font-size: 0.8rem; opacity: 0.8; margin-top: 2rem;">
+                      <p>Thanks &amp; Regards</p>
+                      <p><a href=${env.CLIENT_URL}
+                          style="font-weight: bold; color: #000000; text-decoration: none; border-bottom: 1px solid #6b7280; display: inline-block;">${env.CLIENT_URL}</a>
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background-color: #d1d5db; padding: 1rem; text-align: center;">
+                    <a href=${env.CLIENT_URL}
+                      style="font-weight: bold; opacity: 0.8; transition: opacity 0.3s ease-in-out; color: #000000; text-decoration: none; border-bottom: 2px solid #6b7280;">${env.CLIENT_URL}</a>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            
+            </html>`
+            }
+        )
+
         res.status(200).json({ success: true, message: "Password Updated" })
 
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -332,7 +524,7 @@ router.post('/update-profile', fetchUser, async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -363,7 +555,7 @@ router.post('/get-profile', fetchUser, async (req, res) => {
         res.status(200).json({ success: true, user: validateUser })
 
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -382,7 +574,7 @@ router.get('/user-profile/:userID', async (req, res) => {
 
     try {
 
-        const data = await User.findOne({ userID: req.params.userID })
+        const data = await User.findOne({ userID: req.params.userID }).select('-password')
 
         if (!data) {
             return res.status(404).json({ error: "User Not Found" })
@@ -392,7 +584,7 @@ router.get('/user-profile/:userID', async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,

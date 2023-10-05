@@ -41,7 +41,7 @@ router.post('/check-availability', async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Sever Error" })
     }
 
@@ -51,7 +51,7 @@ router.post('/create-booking', fetchUser, async (req, res) => {
 
     try {
 
-        const { propertyID, startDate, endDate, userID } = req.body;
+        const { propertyID, startDate, endDate } = req.body;
 
         const sessionUserID = req.user.id
 
@@ -60,6 +60,18 @@ router.post('/create-booking', fetchUser, async (req, res) => {
             startDate: { $lt: endDate },
             endDate: { $gt: startDate }
         })
+
+        const validatePropertyOwner = await Property.findOne({ _id: propertyID, owner: sessionUserID })
+
+        if (validatePropertyOwner) {
+
+            return res.status(200).json({
+
+                error: 'You are the owner of this property'
+
+            })
+
+        }
 
         if (!validateBooking) {
 
@@ -98,7 +110,7 @@ router.post('/create-booking', fetchUser, async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Sever Error" })
 
     }
@@ -133,7 +145,7 @@ router.post('/cancel-booking', fetchUser, async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Sever Error" })
     }
 
@@ -158,7 +170,7 @@ router.post('/fetch', fetchUser, async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Sever Error" })
     }
 
@@ -176,21 +188,21 @@ router.post('/fetch-bookings', fetchUser, async (req, res) => {
 
         const propertyID = property.map(data => data._id)
 
-        const data = await Booking.find({ propertyID: { $in: propertyID } }).sort({ _id: -1 })
+        const data = await Booking.find({ propertyID: { $in: propertyID }, isCanceled: false }).sort({ _id: -1 })
 
-        const newData = await Booking.find({ status: 'new' }).sort({ _id: -1 })
+        const newData = await Booking.find({ propertyID: { $in: propertyID }, status: 'new', isCanceled: false }).sort({ _id: -1 })
 
         res.status(200).json({
 
             success: true,
             data: data,
             newData: newData.length
-            
+
         })
 
     } catch (error) {
 
-        console.log(error)
+        console.error(error.message)
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -232,7 +244,7 @@ router.post('/update', fetchUser, async (req, res) => {
 
         errorLooger(errorData)
 
-        console.log(error)
+        console.error(error.message)
         res.status(500).json({ error: "Internal Sever Error" })
     }
 

@@ -5,27 +5,27 @@ const Booking = require('../Models/Booking')
 const Review = require('../Models/Review')
 const fetchUser = require('../Middleware/fetchUser');
 
-const errorLooger = require('../controllers/errorLooger');
+const errorLooger = require('../controllers/errorLogger');
 
 router.post('/create', fetchUser, async (req, res) => {
 
     try {
 
-        const { propertyID, bookingID, rating, comment, description } = req.body;
+        const { bookingID, rating, comment, description } = req.body;
 
         const sessionUserID = req.user.id;
 
         const validateReview = await Review.findOne({ userID: sessionUserID, bookingID: bookingID })
 
-        const validateProperty = await Property.findById(propertyID);
+        const validateBooking = await Booking.findById(bookingID);
+
+        const validateProperty = await Property.findById(validateBooking.propertyID)
 
         if (!validateProperty) {
             return res.status(400).json({
                 error: 'Property not found'
             })
         }
-
-        const validateBooking = await Booking.findById(bookingID);
 
         if (!validateBooking) {
             return res.status(400).json({
@@ -41,23 +41,26 @@ router.post('/create', fetchUser, async (req, res) => {
 
         if (validateBooking.userID == sessionUserID) {
 
+            validateProperty.totalReviews = validateProperty.totalReviews + 1
+            validateProperty.RatingScore = validateProperty.RatingScore + rating
+
+            await validateProperty.save();
+
             const data = await Review({
                 userID: sessionUserID,
-                propertyID: propertyID,
+                propertyID: validateBooking.propertyID,
                 bookingID: bookingID,
                 rating: Number(rating),
                 comment: comment,
+                description: description
             })
 
             await data.save()
 
-            validateProperty = validateProperty + Number(rating)
-            await validateProperty.save();
-
             return res.status(200).json({
 
                 success: true,
-                message: 'Review added successfully'
+                message: 'Review added'
 
             })
 
@@ -65,7 +68,7 @@ router.post('/create', fetchUser, async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -96,7 +99,7 @@ router.get('/fetch/:propertyID', async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -112,7 +115,7 @@ router.get('/fetch/:propertyID', async (req, res) => {
 
 })
 
-router.delete('/delete-review/:reviewID', fetchUser, async () => {
+router.delete('/delete-review/:reviewID', fetchUser, async (req, res) => {
 
     try {
 
@@ -135,7 +138,7 @@ router.delete('/delete-review/:reviewID', fetchUser, async () => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -170,7 +173,7 @@ router.post('/fetch-all-feedback', fetchUser, async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
@@ -231,7 +234,36 @@ router.post('/reply/:reviewID', fetchUser, async (req, res) => {
 
     } catch (error) {
 
-        console.log(error.message);
+        console.error(error.message);
+
+        const errorData = {
+            path: `${req.baseUrl + req.url}`,
+            errorMessage: error.message,
+            errorDetails: error
+        }
+
+        errorLooger(errorData)
+
+        res.status(500).json({ error: "Internal Server Error" })
+
+    }
+
+})
+
+router.get('/fetch-all', async (req, res) => {
+
+    try {
+
+        const data = await Review.find({ rating: { $gt: 3.5 } })
+
+        res.status(200).json({
+            success: true,
+            data: data.slice(0, 4)
+        })
+
+    } catch (error) {
+
+        console.error(error.message);
 
         const errorData = {
             path: `${req.baseUrl + req.url}`,
