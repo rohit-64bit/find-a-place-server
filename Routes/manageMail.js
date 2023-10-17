@@ -33,7 +33,17 @@ router.post('/contact', async (req, res) => {
 
       await contactData.save()
 
-
+      client.sendMail(
+        {
+          from: env.MAIL,
+          to: env.MAIL,
+          subject: `NEW CONTACT REPORT - ${subject}`,
+          text: `Name : ${validateUser.name} \nEmail : ${validateUser.email} \nMessage : ${message} \nSubject : ${subject} \nType : ${type}`
+        }
+      )
+        .catch(e => {
+          console.log(e)
+        })
 
       client.sendMail(
         {
@@ -104,6 +114,18 @@ router.post('/contact', async (req, res) => {
         subject: subject,
         isExistingUser: false
       })
+
+      client.sendMail(
+        {
+          from: env.MAIL,
+          to: env.MAIL,
+          subject: `NEW CONTACT REPORT - ${subject}`,
+          text: `Name : ${validateUser.name} \nEmail : ${validateUser.email} \nMessage : ${message} \nSubject : ${subject} \nType : ${type}`
+        }
+      )
+        .catch(e => {
+          console.log(e)
+        })
 
       client.sendMail(
         {
